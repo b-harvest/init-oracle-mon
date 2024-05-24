@@ -1,0 +1,13 @@
+[general]
+# For listen API port
+listen_port = 8080
+
+# Your validator consensus address i.e. "initvalcons1..."
+cons_addr = ""
+
+rpc = "http://localhost:26657"
+
+[tg]
+enable = true
+token = ""
+chat_id = ""
