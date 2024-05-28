@@ -21,7 +21,7 @@ func NewState() *StateType {
 		Height:     0,
 		BlockSign:  false,
 		OracleSign: false,
-		DoubleSign: false,
+		OracleDoubleSign: false,
 	}
 }
 

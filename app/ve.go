@@ -93,14 +93,23 @@ func (app *BaseApp) SubVoteExtension(ctx context.Context) {
 		}
 
 		if signedCnt > 1 {
-			state.DoubleSign = true
+			state.OracleDoubleSign = true
 			utils.Error(fmt.Errorf("Double sign detected at %d", block.Height))
 		}
 
-		if state.BlockSign && state.OracleSign && !state.DoubleSign {
+		if state.BlockSign && state.OracleSign && !state.OracleDoubleSign {
 			state.Status = true
 		} else {
 			utils.Info(fmt.Sprintf("Something wrong with your oracle node : %+v", state))
+			state.OracleMissCnt++
+		}
+
+		if block.Height % 30 == 0 {
+			state.OracleMissCnt = 0
+		}
+
+		if state.OracleMissCnt > 10 {
+			state.OracleMissCnt = 0
 			utils.SendTg(fmt.Sprintf("Something wrong with your oracle node at %d", block.Height))
 		}
 

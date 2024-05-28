@@ -22,6 +22,7 @@ func (app *BaseApp) Run(ctx context.Context) {
 		select {
 		case err := <-app.chErr:
 			utils.Error(err)
+			utils.SendTg(err.Error()) // For debugging
 			return
 		}
 	}

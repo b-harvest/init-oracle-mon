@@ -8,9 +8,10 @@ type GlobalStateType struct {
 }
 
 type StateType struct {
-	Status     bool  `json:"status"`
-	Height     int64 `json:"height"`
-	BlockSign  bool  `json:"block_sign"`
-	OracleSign bool  `json:"oracle_sign"`
-	DoubleSign bool  `json:"double_sign"`
+	Status           bool   `json:"status"`
+	Height           int64  `json:"height"`
+	OracleMissCnt    uint64 `json:"oracle_miss_cnt"`
+	BlockSign        bool   `json:"block_sign"`
+	OracleSign       bool   `json:"oracle_sign"`
+	OracleDoubleSign bool   `json:"oracle_double_sign"`
 }
