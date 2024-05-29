@@ -6,15 +6,16 @@ import (
 
 type Config struct {
 	General struct {
-		ListenPort int  `toml:"listen_port"`
-		ConsAddr string `toml:"cons_addr"`
-		RPC string `toml:"rpc"`
+		ListenPort int    `toml:"listen_port"`
+		ConsAddr   string `toml:"cons_addr"`
+		RPC        string `toml:"rpc"`
 	} `toml:"general"`
 	Tg utils.TgConfig `toml:"tg"`
 }
 
 type BaseApp struct {
-	cfg      *Config
-	chVEHash chan string
-	chErr    chan error
+	cfg       *Config
+	chErr     chan error
+	chTimeout chan struct{}
+	pid       int
 }

@@ -3,11 +3,13 @@ package app
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"bharvest.io/init-oracle-mon/client/rpc"
 	"bharvest.io/init-oracle-mon/store"
 	"bharvest.io/init-oracle-mon/utils"
 
+	cmttypes "github.com/cometbft/cometbft/rpc/core/types"
 	"github.com/cometbft/cometbft/types"
 	sdktypes "github.com/cosmos/cosmos-sdk/types"
 	compression "github.com/skip-mev/slinky/abci/strategies/codec"
@@ -31,7 +33,6 @@ func (app *BaseApp) SubVoteExtension(ctx context.Context) {
 		}
 	}()
 
-
 	// Prepare codecs for decoding
 	commitCodec := compression.NewCompressionExtendedCommitCodec(
 		compression.NewDefaultExtendedCommitCodec(),
@@ -43,7 +44,18 @@ func (app *BaseApp) SubVoteExtension(ctx context.Context) {
 		app.chErr <- err
 		return
 	}
-	for newBlock := range chNewBlock {
+	for {
+		var newBlock cmttypes.ResultEvent
+
+		select {
+		case <-time.After(30 * time.Second):
+			utils.Debug("No new block for 30 seconds - trying to restarting the subscription...")
+			app.chTimeout <- struct{}{}
+			return
+		case newBlock = <-chNewBlock:
+			// just pass for procced
+		}
+
 		state := store.NewState()
 
 		block := newBlock.Data.(types.EventDataNewBlock).Block
@@ -92,24 +104,24 @@ func (app *BaseApp) SubVoteExtension(ctx context.Context) {
 			}
 		}
 
+		// Check double sign
 		if signedCnt > 1 {
 			state.OracleDoubleSign = true
 			utils.Error(fmt.Errorf("Double sign detected at %d", block.Height))
 		}
 
-		if state.BlockSign && state.OracleSign && !state.OracleDoubleSign {
-			state.Status = true
-		} else {
+		// Check oracle missing
+		if !state.BlockSign || !state.OracleSign || state.OracleDoubleSign {
 			utils.Info(fmt.Sprintf("Something wrong with your oracle node : %+v", state))
-			state.OracleMissCnt++
+			store.GlobalState.Status.OracleMissCnt++
 		}
 
-		if block.Height % 30 == 0 {
-			state.OracleMissCnt = 0
+		// If pass the window, reset oracle miss count
+		if block.Height%store.Window == 0 {
+			store.GlobalState.Status.OracleMissCnt = 0
 		}
 
-		if state.OracleMissCnt > 10 {
-			state.OracleMissCnt = 0
+		if !store.UpdateStatus() {
 			utils.SendTg(fmt.Sprintf("Something wrong with your oracle node at %d", block.Height))
 		}
 
