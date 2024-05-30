@@ -25,21 +25,28 @@ Initia Oracle Monitor program for Initia chain validator operator.
   - Result Example
   ```json
   {
+    "status": {
+        "status": true,
+        "oracle_miss_cnt": "0 / 30",
+        "uptime": "100%",
+        "WindowSize": 30,
+        "OracleMissCnt": 0
+    },
     "state": [
         {
-            "status": true,
-            "height": 297453,
+            "height": 464351,
             "block_sign": true,
             "oracle_sign": true,
-            "double_sign": false
+            "oracle_double_sign": false
         },
         {
-            "status": true,
-            "height": 297454,
+            "height": 464352,
             "block_sign": true,
             "oracle_sign": true,
-            "double_sign": false
+            "oracle_double_sign": false
         },
+        ...
+    ]
   }
   ```
 
